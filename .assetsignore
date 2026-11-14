@@ -1,0 +1,13 @@
+supabase.txt
+youtube.txt
+.env
+.git
+.gitignore
+.vercelignore
+vercel.json
+wrangler.jsonc
+worker.js
+api
+api-sync-youtube.js
+package.json
+node_modules

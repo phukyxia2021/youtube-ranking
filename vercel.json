@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/sync-youtube.js": {
+      "maxDuration": 60
+    }
+  }
+}

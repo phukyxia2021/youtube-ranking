@@ -30,6 +30,13 @@ const CHANNELS_DATA_PATH = path.join(PROJECT_DIR, 'channels-data.js');
  * Đọc thông tin kết nối từ supabase.txt
  */
 function loadSupabaseConfig() {
+    // Ưu tiên biến môi trường (dùng khi deploy lên Vercel/hosting)
+    const envUrl = process.env.SUPABASE_URL;
+    const envKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY;
+    if (envUrl && envKey) {
+        return { url: envUrl.trim().replace(/\/+$/, ''), publishableKey: envKey.trim(), password: null };
+    }
+
     const raw = fs.readFileSync(SUPABASE_TXT_PATH, 'utf8');
     const urlMatch = raw.match(/Project URL:\s*(\S+)/i);
     const keyMatch = raw.match(/Publish key:\s*(\S+)/i);
@@ -50,6 +57,15 @@ function loadSupabaseConfig() {
  * Đọc endpoint và API key từ youtube.txt
  */
 function loadYouTubeConfig() {
+    // Ưu tiên biến môi trường (dùng khi deploy lên Vercel/hosting)
+    if (process.env.YOUTUBE_API_KEY) {
+        return {
+            endpoint: 'https://www.googleapis.com/youtube/v3/channels',
+            part: 'snippet,statistics',
+            apiKey: process.env.YOUTUBE_API_KEY.trim()
+        };
+    }
+
     const raw = fs.readFileSync(YOUTUBE_TXT_PATH, 'utf8').trim();
     const parsedUrl = new URL(raw);
     const apiKey = parsedUrl.searchParams.get('key');

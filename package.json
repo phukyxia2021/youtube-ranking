@@ -1,0 +1,13 @@
+{
+  "name": "youtube-ranking",
+  "version": "1.0.0",
+  "private": true,
+  "description": "YouTube channels ranking with Supabase and YouTube API auto-sync",
+  "scripts": {
+    "sync": "node api-sync-youtube.js",
+    "serve": "node api-sync-youtube.js --serve"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

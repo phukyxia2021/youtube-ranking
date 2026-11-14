@@ -1,0 +1,5 @@
+supabase.txt
+youtube.txt
+node_modules/
+.vercel/
+.env
