@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title id="page-title">Channel Profile - YouTuber Ranking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <div id="snippetContent">
+        <div class="container">
+            <div class="main-body">
+                <!-- Thanh điều hướng & chọn nhanh kênh -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 bg-white p-3 rounded shadow-sm">
+                    <div>
+                        <a href="index.html" class="btn btn-outline-primary btn-sm mr-2">
+                            <i class="fa fa-arrow-left"></i> Quay lại Bảng xếp hạng
+                        </a>
+                        <button type="button" id="sync-youtube-btn" class="btn btn-danger btn-sm mr-2">
+                            <i class="fa fa-youtube-play"></i> Cập nhật từ YouTube API
+                        </button>
+                        <span id="supabase-status" class="badge badge-secondary">Đang kết nối Supabase...</span>
+                    </div>
+                    <div class="d-flex align-items-center mt-2 mt-sm-0">
+                        <label for="quick-channel-select" class="mb-0 mr-2 font-weight-bold text-secondary small">Chuyển nhanh kênh:</label>
+                        <select id="quick-channel-select" class="custom-select custom-select-sm" style="min-width: 240px;"></select>
+                    </div>
+                </div>
+
+                <!-- Ảnh Banner của Kênh -->
+                <div class="channel-banner-wrapper mb-4 rounded shadow-sm overflow-hidden position-relative">
+                    <img id="channel-banner" src="img/channel/banner/default-channel-banner.jpg" alt="Channel Banner" class="w-100"
+                        onerror="this.onerror=null;this.src='img/channel/banner/default-channel-banner.jpg';">
+                    <span id="channel-rank-badge" class="badge badge-warning position-absolute" style="top: 15px; right: 15px; font-size: 15px; padding: 8px 14px;">
+                        Rank #1
+                    </span>
+                </div>
+
+                <div class="row">
+                    <!-- Cột trái: Avatar + Thông tin cơ bản + Mạng xã hội -->
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex flex-column align-items-center text-center">
+                                    <img id="channel-avatar" src="img/channel/500x500/default-channel-thumbnail.jpg" alt="Channel Avatar"
+                                        class="rounded-circle p-1 bg-primary" width="120" height="120" style="object-fit: cover;"
+                                        onerror="this.onerror=null;this.src='img/channel/500x500/default-channel-thumbnail.jpg';">
+                                    <div class="mt-3">
+                                        <h4 id="channel-name">MrBeast</h4>
+                                        <p class="text-secondary mb-1 font-weight-bold" id="channel-handle">@MrBeast</p>
+                                        <p class="mb-3">
+                                            <span class="badge badge-pill badge-info px-3 py-1" id="channel-category-badge">Entertainment</span>
+                                        </p>
+                                        <a id="channel-youtube-btn" href="https://youtube.com/@MrBeast" target="_blank" rel="noopener noreferrer" class="btn btn-danger">
+                                            <i class="fa fa-youtube-play"></i> YouTube Channel
+                                        </a>
+                                        <a href="index.html" class="btn btn-outline-primary">
+                                            Danh sách
+                                        </a>
+                                    </div>
+                                </div>
+                                <hr class="my-4">
+                                <ul class="list-group list-group-flush" id="social-links-list">
+                                    <!-- Render tự động từ dữ liệu SQL -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải: Chi tiết dữ liệu SQL & Thống kê -->
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="mb-3 text-primary"><i class="fa fa-database"></i> Thông tin kênh (Dữ liệu SQL)</h5>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Channel ID</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control bg-light" id="input-id" readonly>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Tên kênh (Name)</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control" id="input-name" readonly>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Handle</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control" id="input-handle" readonly>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Danh mục (Category)</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control" id="input-category" readonly>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Subscribers</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control font-weight-bold text-dark" id="input-subscribers" readonly>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Số lượng Video</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control" id="input-videos" readonly>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Tổng lượt xem</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <input type="text" class="form-control" id="input-views" readonly>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-sm-3">
+                                        <h6 class="mb-0">Mô tả kênh</h6>
+                                    </div>
+                                    <div class="col-sm-9 text-secondary">
+                                        <textarea class="form-control" id="input-description" rows="2" readonly></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="d-flex align-items-center mb-3"><i class="fa fa-bar-chart mr-2 text-primary"></i> Chỉ số so sánh & Kênh cùng danh mục</h5>
+                                        <p class="mb-1">Tỷ lệ Subscribers so với kênh Top 1 (<span id="sub-ratio-label">100%</span>)</p>
+                                        <div class="progress mb-3" style="height: 8px">
+                                            <div id="sub-progress-bar" class="progress-bar bg-primary" role="progressbar" style="width: 100%"
+                                                aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <p class="mb-1">Số lượng Video xuất bản (<span id="video-ratio-label">840 videos</span>)</p>
+                                        <div class="progress mb-4" style="height: 8px">
+                                            <div id="video-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 50%"
+                                                aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+
+                                        <h6 class="font-weight-bold mb-3">Các kênh cùng danh mục <span id="related-category-name" class="text-primary"></span>:</h6>
+                                        <div class="row" id="related-channels-list">
+                                            <!-- Các kênh cùng category -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style type="text/css">
+            body {
+                background: #f7f7ff;
+                margin-top: 20px;
+                margin-bottom: 40px;
+            }
+
+            .channel-banner-wrapper {
+                max-height: 210px;
+                background: #1e293b;
+            }
+
+            .channel-banner-wrapper img {
+                height: 210px;
+                object-fit: cover;
+            }
+
+            .card {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+                word-wrap: break-word;
+                background-color: #fff;
+                background-clip: border-box;
+                border: 0 solid transparent;
+                border-radius: .35rem;
+                margin-bottom: 1.5rem;
+                box-shadow: 0 2px 6px 0 rgb(218 218 253 / 65%), 0 2px 6px 0 rgb(206 206 238 / 54%);
+            }
+
+            .me-2 {
+                margin-right: .5rem !important;
+            }
+
+            .related-item {
+                display: flex;
+                align-items: center;
+                padding: 8px 10px;
+                border-radius: 8px;
+                border: 1px solid #e5e7eb;
+                transition: all 0.2s;
+                text-decoration: none !important;
+                color: #252525;
+            }
+
+            .related-item:hover {
+                background: #eff6ff;
+                border-color: #93c5fd;
+            }
+
+            .related-item img {
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                object-fit: cover;
+                margin-right: 10px;
+            }
+        </style>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <script src="channels-data.js"></script>
+        <script type="text/javascript">
+            (function () {
+                const DEFAULT_AVATAR = 'img/channel/500x500/default-channel-thumbnail.jpg';
+                const DEFAULT_BANNER = 'img/channel/banner/default-channel-banner.jpg';
+
+                let sortedBySub = [];
+                let maxSub = 1;
+
+                function refreshSortedList() {
+                    sortedBySub = CHANNELS_DATA.slice().sort(function (a, b) {
+                        return b.subscribers - a.subscribers;
+                    });
+                    maxSub = sortedBySub.length > 0 ? (sortedBySub[0].subscribers || 1) : 1;
+                }
+
+                refreshSortedList();
+
+                function getChannelById(id) {
+                    return CHANNELS_DATA.find(function (c) { return c.id === id; }) || sortedBySub[0];
+                }
+
+                function populateSelect(currentId) {
+                    const select = document.getElementById('quick-channel-select');
+                    select.innerHTML = sortedBySub.map(function (c, i) {
+                        const selected = c.id === currentId ? 'selected' : '';
+                        return '<option value="' + c.id + '" ' + selected + '>#' + (i + 1) + ' - ' + c.name + ' (' + c.subscribers_formatted + ')</option>';
+                    }).join('');
+
+                    select.onchange = function () {
+                        const newId = this.value;
+                        window.history.replaceState({}, '', 'profile.html?id=' + encodeURIComponent(newId));
+                        renderProfile(newId);
+                    };
+                }
+
+                function formatSocialRow(iconClass, colorClass, label, url) {
+                    const valueHtml = url
+                        ? '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="text-primary text-truncate" style="max-width: 175px;">' + url.replace(/^https?:\/\/(www\.)?/, '') + '</a>'
+                        : '<span class="text-muted small">NULL (Chưa có)</span>';
+
+                    return (
+                        '<li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">' +
+                            '<h6 class="mb-0"><i class="fa ' + iconClass + ' me-2 ' + colorClass + '"></i>' + label + '</h6>' +
+                            valueHtml +
+                        '</li>'
+                    );
+                }
+
+                function renderProfile(channelId) {
+                    const ch = getChannelById(channelId);
+                    const rank = sortedBySub.findIndex(function (item) { return item.id === ch.id; }) + 1;
+
+                    document.getElementById('page-title').textContent = ch.name + ' (' + ch.handle + ') - YouTuber Profile';
+                    document.getElementById('channel-rank-badge').textContent = 'Rank #' + rank + ' • ' + ch.subscribers_formatted + ' Subs';
+                    document.getElementById('channel-banner').src = 'img/channel/banner/' + (ch.banner || 'default-channel-banner.jpg');
+                    document.getElementById('channel-avatar').src = 'img/channel/500x500/' + (ch.avatar || 'default-channel-thumbnail.jpg');
+
+                    document.getElementById('channel-name').textContent = ch.name;
+                    document.getElementById('channel-handle').textContent = ch.handle || '';
+                    document.getElementById('channel-category-badge').textContent = ch.category;
+                    document.getElementById('channel-youtube-btn').href = ch.url || '#';
+
+                    // Điền dữ liệu vào các ô thông tin
+                    document.getElementById('input-id').value = ch.id;
+                    document.getElementById('input-name').value = ch.name;
+                    document.getElementById('input-handle').value = ch.handle || 'NULL';
+                    document.getElementById('input-category').value = ch.category;
+                    document.getElementById('input-subscribers').value = ch.subscribers_formatted + ' (' + (ch.subscribers || 0).toLocaleString() + ' người đăng ký)';
+                    document.getElementById('input-videos').value = (ch.videos_count || 0).toLocaleString() + ' videos';
+                    document.getElementById('input-views').value = (ch.view_count || 0).toLocaleString() + ' lượt xem';
+                    document.getElementById('input-description').value = ch.description || 'Chưa có mô tả chi tiết trong SQL.';
+
+                    // Mạng xã hội
+                    document.getElementById('social-links-list').innerHTML = [
+                        formatSocialRow('fa-youtube-play', 'text-danger', 'YouTube', ch.url),
+                        formatSocialRow('fa-globe', 'text-secondary', 'Website', ch.website),
+                        formatSocialRow('fa-twitter', 'text-info', 'Twitter / X', ch.twitter),
+                        formatSocialRow('fa-music', 'text-dark', 'TikTok', ch.tiktok),
+                        formatSocialRow('fa-facebook-official', 'text-primary', 'Facebook', ch.facebook)
+                    ].join('');
+
+                    // Thanh progress so sánh
+                    const subRatio = Math.max(2, Math.round((ch.subscribers / maxSub) * 100));
+                    document.getElementById('sub-ratio-label').textContent = ch.subscribers_formatted + ' / 375M (' + subRatio + '%)';
+                    document.getElementById('sub-progress-bar').style.width = subRatio + '%';
+
+                    const videoPercent = Math.min(100, Math.max(5, Math.round(Math.log10((ch.videos_count || 1) + 1) / Math.log10(155000) * 100)));
+                    document.getElementById('video-ratio-label').textContent = (ch.videos_count || 0).toLocaleString() + ' videos';
+                    document.getElementById('video-progress-bar').style.width = videoPercent + '%';
+
+                    // Kênh cùng danh mục
+                    document.getElementById('related-category-name').textContent = '(' + ch.category + ')';
+                    const related = sortedBySub.filter(function (item) {
+                        return item.category === ch.category && item.id !== ch.id;
+                    });
+                    const relatedContainer = document.getElementById('related-channels-list');
+                    if (related.length === 0) {
+                        relatedContainer.innerHTML = '<div class="col-12 text-muted small">Không có kênh nào khác trong cùng danh mục này.</div>';
+                    } else {
+                        relatedContainer.innerHTML = related.map(function (r) {
+                            const rAvatar = 'img/channel/500x500/' + (r.avatar || 'default-channel-thumbnail.jpg');
+                            return (
+                                '<div class="col-md-6 mb-2">' +
+                                    '<a href="profile.html?id=' + encodeURIComponent(r.id) + '" class="related-item">' +
+                                        '<img src="' + rAvatar + '" alt="' + r.name + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_AVATAR + '\';" />' +
+                                        '<div class="text-truncate">' +
+                                            '<div class="font-weight-bold text-truncate" style="font-size:14px;">' + r.name + '</div>' +
+                                            '<div class="text-muted small">' + r.subscribers_formatted + ' subs &bull; ' + (r.videos_count || 0).toLocaleString() + ' videos</div>' +
+                                        '</div>' +
+                                    '</a>' +
+                                '</div>'
+                            );
+                        }).join('');
+                    }
+                }
+
+                const params = new URLSearchParams(window.location.search);
+                const initialId = params.get('id') || sortedBySub[0].id;
+                populateSelect(initialId);
+                renderProfile(initialId);
+
+                const syncBtn = document.getElementById('sync-youtube-btn');
+                if (syncBtn && typeof syncChannelsWithYouTubeAPI === 'function') {
+                    syncBtn.addEventListener('click', function () {
+                        const statusEl = document.getElementById('supabase-status');
+                        syncBtn.disabled = true;
+                        syncBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang đồng bộ...';
+
+                        syncChannelsWithYouTubeAPI()
+                            .then(function (res) {
+                                refreshSortedList();
+                                const currentId = document.getElementById('quick-channel-select').value || initialId;
+                                populateSelect(currentId);
+                                renderProfile(currentId);
+
+                                if (statusEl) {
+                                    statusEl.className = res.supabaseSynced ? 'badge badge-success' : 'badge badge-info';
+                                    statusEl.textContent = res.supabaseSynced
+                                        ? 'Đã cập nhật YouTube API -> Supabase (' + res.updatedCount + ' kênh)'
+                                        : 'Đã cập nhật YouTube API (' + res.updatedCount + ' kênh)';
+                                }
+                            })
+                            .catch(function (err) {
+                                alert('Lỗi khi gọi YouTube API: ' + err.message);
+                            })
+                            .finally(function () {
+                                syncBtn.disabled = false;
+                                syncBtn.innerHTML = '<i class="fa fa-youtube-play"></i> Cập nhật từ YouTube API';
+                            });
+                    });
+                }
+
+                if (typeof fetchChannelsFromSupabase === 'function') {
+                    fetchChannelsFromSupabase().then(function (result) {
+                        const statusEl = document.getElementById('supabase-status');
+                        if (statusEl) {
+                            if (result.source === 'supabase') {
+                                statusEl.className = 'badge badge-success';
+                                statusEl.textContent = 'Đã kết nối Supabase';
+                            } else {
+                                statusEl.className = 'badge badge-warning';
+                                statusEl.textContent = 'Dữ liệu SQL cục bộ';
+                            }
+                        }
+                        refreshSortedList();
+                        const currentId = document.getElementById('quick-channel-select').value || initialId;
+                        populateSelect(currentId);
+                        renderProfile(currentId);
+                    });
+                }
+            })();
+        </script>
+    </div>
+</body>
+
+</html>

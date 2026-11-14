@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="utf-8">
+    <title>SUBSCRIBED YOUTUBE CHANNELS RANKING</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="event-schedule-area-two bg-color pad100">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="section-title text-center">
+                        <div class="title-text">
+                            <h2 id="ranking-table-title">SUBSCRIBED YOUTUBE CHANNELS RANKING</h2>
+                        </div>
+                        <p id="channel-summary-text">
+                            Phân trang, mỗi trang 50 kênh &bull; Hiển thị <strong id="total-count">21</strong> kênh &bull; <span id="supabase-status" class="badge badge-secondary">Đang kết nối Supabase...</span>
+                        </p>
+                        <div class="mt-2">
+                            <button type="button" id="sync-youtube-btn" class="btn btn-sm btn-danger shadow-sm">
+                                <i class="fa fa-youtube-play"></i> Đồng bộ YouTube API &rarr; Database
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <form action="#" class="career-form mb-60" id="filter-form" onsubmit="return false;">
+                <input type="hidden" class="form-control" id="channel-category" value="ALL">
+                <div class="row">
+                    <div class="col-md-6 col-lg-3 my-3">
+                        <div class="input-group position-relative">
+                            <input type="text" class="form-control" placeholder="Tìm tên kênh, @handle, danh mục..." id="keywords">
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 my-3">
+                        <div class="select-container">
+                            <select class="custom-select" id="sort-subscribe">
+                                <option value="0">Subscribe (Mặc định)</option>
+                                <option value="1" selected>Highest (Cao nhất)</option>
+                                <option value="2">Lowest (Thấp nhất)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 my-3">
+                        <div class="select-container">
+                            <select class="custom-select" id="sort-date">
+                                <option value="0" selected>Date (Tất cả)</option>
+                                <option value="1">Newest (Mới nhất)</option>
+                                <option value="2">Oldest (Cũ nhất)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 my-3 d-flex">
+                        <button type="button" class="btn btn-lg btn-block btn-primary btn-custom mr-2" id="contact-submit">Search</button>
+                        <button type="button" class="btn btn-lg btn-outline-secondary" id="reset-filter" title=" Đặt lại bộ lọc"><i class="fa fa-refresh"></i></button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="row mt-4 mb-3">
+                <div class="col-lg-12">
+                    <div class="section-title text-center">
+                        <div class="title-text">
+                            <h2>Group Channel (Danh mục)</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row justify-content-center mb-4" id="group-channel-list">
+                <!-- Được render tự động theo danh mục từ dữ liệu SQL -->
+            </div>
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="tab-content" id="myTabContent">
+                        <div class="tab-pane fade active show" id="getRequestData" role="tabpanel">
+                            <div tabindex="0" role="region" aria-labelledby="ranking-table-title" class="table-responsive table-wrapper">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center" scope="col">Rank / Date</th>
+                                            <th scope="col">Thumbnail</th>
+                                            <th scope="col">Information</th>
+                                            <th scope="col">Subscribe</th>
+                                            <th class="text-center" scope="col">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="channels-table-body">
+                                        <!-- Dữ liệu các kênh từ data-channels.sql sẽ được render tại đây -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="primary-btn text-center">
+                        <a href="data-channels.sql" download class="btn btn-primary"><i class="fa fa-download"></i> Download SQL Data</a>
+                    </div>
+                </div>
+            </div>
+
+            <nav aria-label="Page navigation" style="margin-top:25px; margin-bottom:40px;">
+                <ul class="pagination pagination-reset justify-content-center" id="pagination-list">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">&laquo;</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">&raquo;</a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+
+    <style type="text/css">
+        body {
+            margin-top: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .mb-5 {
+            margin-bottom: 5px;
+        }
+
+        .event-schedule-area-two .section-title .title-text h2 {
+            margin: 0px 0 15px;
+            font-weight: 700;
+        }
+
+        .event-schedule-area-two .primary-btn {
+            margin-top: 40px;
+        }
+
+        /* Responsive Table Wrapper & Sticky Context */
+        .table-wrapper {
+            overflow: auto;
+            max-inline-size: 100%;
+            container-type: inline-size;
+            border-radius: 8px;
+            -webkit-box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
+            background: #fff;
+        }
+
+        .event-schedule-area-two .tab-content .table {
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+            --label-2: "Thumbnail";
+            --label-3: "Information";
+            --label-4: "Subscribe";
+            --label-5: "Action";
+        }
+
+        .event-schedule-area-two .tab-content .table thead {
+            background-color: #007bff;
+            color: #fff;
+            font-size: 18px;
+            position: sticky;
+            inset-block-start: 0;
+            z-index: 2;
+        }
+
+        .event-schedule-area-two .tab-content .table thead tr th {
+            padding: 18px 20px;
+            border: 0;
+            background-color: #007bff;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody {
+            background: #fff;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr.inner-box {
+            border-bottom: 1px solid #dee2e6;
+            transition: background-color 0.2s ease;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr.inner-box:hover {
+            background-color: #f4f7ff;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr th {
+            border: 0;
+            border-bottom: 1px solid #dee2e6;
+            padding: 24px 20px;
+            vertical-align: middle;
+            position: sticky;
+            inset-inline-start: 0;
+            background: #fff;
+            z-index: 1;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr.inner-box:hover th {
+            background-color: #f4f7ff;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr th .event-date {
+            color: #252525;
+            text-align: center;
+            min-width: 75px;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr th .event-date span {
+            font-size: 36px;
+            line-height: 40px;
+            font-weight: 700;
+            color: #4125dd;
+            display: block;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr th .event-date span.rank-top-1 {
+            color: #d97706;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr th .event-date span.rank-top-2 {
+            color: #64748b;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr th .event-date span.rank-top-3 {
+            color: #b45309;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr th .event-date p {
+            font-size: 13px;
+            color: #6c757d;
+            margin: 4px 0 0;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td {
+            padding: 24px 20px;
+            vertical-align: middle;
+            border-top: 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .r-no span {
+            color: #252525;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap h3 {
+            margin-bottom: 6px;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap h3 a {
+            font-size: 20px;
+            line-height: 24px;
+            color: #cf057c;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap h3 a:hover {
+            color: #4125dd;
+            text-decoration: none;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap .handle-badge {
+            font-size: 14px;
+            color: #555;
+            background: #eef2ff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap .categories {
+            display: inline-flex;
+            margin: 6px 12px 6px 0;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap .categories a {
+            color: #252525;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap .categories a:hover {
+            color: #007bff;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap .categories a:before {
+            content: "\f07b";
+            font-family: fontawesome;
+            padding-right: 6px;
+            color: #f59e0b;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap .time span {
+            color: #555;
+            font-size: 14px;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap .organizers {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 6px 12px 6px 0;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap .organizers a {
+            color: #4125dd;
+            font-size: 14px;
+            margin-right: 10px;
+            transition: all 0.3s;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-wrap .organizers a:hover {
+            text-decoration: underline;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .primary-btn {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-img img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid #eee;
+            transition: transform 0.2s ease;
+        }
+
+        .event-schedule-area-two .tab-content .table tbody tr td .event-img img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Group Channel Category Cards */
+        .group-card {
+            cursor: pointer;
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            background: #fff;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .group-card:hover {
+            transform: translateY(-3px);
+            border-color: #93c5fd;
+        }
+
+        .group-card.active {
+            border-color: #007bff;
+            background: #eff6ff;
+        }
+
+        .group-card img {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 6px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .group-card .group-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 2px;
+        }
+
+        .group-card .group-count {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Container query stacked layout on narrow screens */
+        @container (width < 640px) {
+            .event-schedule-area-two .tab-content .table,
+            .event-schedule-area-two .tab-content .table thead,
+            .event-schedule-area-two .tab-content .table tbody,
+            .event-schedule-area-two .tab-content .table tr,
+            .event-schedule-area-two .tab-content .table th,
+            .event-schedule-area-two .tab-content .table td {
+                display: block;
+            }
+
+            .event-schedule-area-two .tab-content .table thead {
+                display: none;
+            }
+
+            .event-schedule-area-two .tab-content .table tbody tr.inner-box {
+                margin-block-end: 1rem;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+            }
+
+            .event-schedule-area-two .tab-content .table tbody tr th {
+                position: sticky;
+                inset-block-start: 0;
+                z-index: 2;
+                background: #eef2ff;
+                padding: 12px 16px;
+            }
+
+            .event-schedule-area-two .tab-content .table tbody tr td {
+                padding: 12px 16px;
+            }
+
+            .event-schedule-area-two .tab-content .table tbody tr td:nth-child(2)::before {
+                content: var(--label-2) ": ";
+                font-weight: 700;
+                display: block;
+                margin-bottom: 6px;
+            }
+
+            .event-schedule-area-two .tab-content .table tbody tr td:nth-child(3)::before {
+                content: var(--label-3) ": ";
+                font-weight: 700;
+                display: block;
+                margin-bottom: 6px;
+            }
+
+            .event-schedule-area-two .tab-content .table tbody tr td:nth-child(4)::before {
+                content: var(--label-4) ": ";
+                font-weight: 700;
+                display: inline-block;
+                margin-right: 8px;
+            }
+
+            .event-schedule-area-two .tab-content .table tbody tr td:nth-child(5)::before {
+                content: var(--label-5) ": ";
+                font-weight: 700;
+                display: block;
+                margin-bottom: 6px;
+            }
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="channels-data.js"></script>
+    <script type="text/javascript">
+        (function () {
+            const DEFAULT_AVATAR = 'img/channel/500x500/default-channel-thumbnail.jpg';
+
+            // Ảnh đại diện cho từng nhóm danh mục
+            const CATEGORY_META = {
+                'ALL': { label: 'Tất cả', avatar: 'img/channel/500x500/default-channel-thumbnail.jpg' },
+                'VTuber': { label: 'VTuber', avatar: 'img/channel/500x500/hololive-channel-thumbnail.jpg' },
+                'Entertainment': { label: 'Entertainment', avatar: 'img/channel/500x500/mrbeast-channel-thumbnail.jpg' },
+                'Game': { label: 'Game', avatar: 'img/channel/500x500/pewdiepie-channel-thumbnail.jpg' },
+                'News': { label: 'News', avatar: 'img/channel/500x500/ann-news-channel-thumbnail.jpg' },
+                'Development': { label: 'Development', avatar: 'img/channel/500x500/freecodecamp-channel-thumbnail.jpg' },
+                'Music': { label: 'Music', avatar: 'img/channel/500x500/tseries-channel-thumbnail.jpg' }
+            };
+
+            function formatPublishedDate(isoStr) {
+                if (!isoStr) return 'N/A';
+                const d = new Date(isoStr);
+                if (isNaN(d.getTime())) return 'N/A';
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                return months[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+            }
+
+            function renderGroupCategories(activeCategory) {
+                const counts = { 'ALL': CHANNELS_DATA.length };
+                CHANNELS_DATA.forEach(function (ch) {
+                    counts[ch.category] = (counts[ch.category] || 0) + 1;
+                });
+
+                const container = document.getElementById('group-channel-list');
+                const categories = Object.keys(CATEGORY_META);
+                container.innerHTML = categories.map(function (cat) {
+                    const meta = CATEGORY_META[cat];
+                    const count = counts[cat] || 0;
+                    const isActive = activeCategory === cat ? 'active' : '';
+                    return (
+                        '<div class="col-6 col-sm-4 col-md-3 col-lg-auto mb-3">' +
+                            '<div class="group-card ' + isActive + '" data-category="' + cat + '" style="min-width: 120px;">' +
+                                '<img src="' + meta.avatar + '" alt="' + meta.label + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_AVATAR + '\';" />' +
+                                '<div class="group-title">' + meta.label + '</div>' +
+                                '<div class="group-count">' + count + ' kênh</div>' +
+                            '</div>' +
+                        '</div>'
+                    );
+                }).join('');
+
+                // Gắn sự kiện click lọc theo Group Channel
+                const cards = container.querySelectorAll('.group-card');
+                cards.forEach(function (card) {
+                    card.addEventListener('click', function () {
+                        const selectedCat = this.getAttribute('data-category');
+                        document.getElementById('channel-category').value = selectedCat;
+                        renderGroupCategories(selectedCat);
+                        applyFiltersAndRender();
+                    });
+                });
+            }
+
+            function renderSocialLinks(channel) {
+                const links = [];
+                if (channel.website) {
+                    links.push('<a href="' + channel.website + '" target="_blank" rel="noopener noreferrer"><i class="fa fa-globe"></i> Website</a>');
+                }
+                if (channel.facebook) {
+                    links.push('<a href="' + channel.facebook + '" target="_blank" rel="noopener noreferrer"><i class="fa fa-facebook-square"></i> Facebook</a>');
+                }
+                if (channel.twitter) {
+                    links.push('<a href="' + channel.twitter + '" target="_blank" rel="noopener noreferrer"><i class="fa fa-twitter"></i> Twitter/X</a>');
+                }
+                if (channel.tiktok) {
+                    links.push('<a href="' + channel.tiktok + '" target="_blank" rel="noopener noreferrer"><i class="fa fa-music"></i> TikTok</a>');
+                }
+                if (links.length === 0) {
+                    links.push('<a href="' + channel.url + '" target="_blank" rel="noopener noreferrer"><i class="fa fa-youtube-play"></i> YouTube</a>');
+                }
+                return links.join('');
+            }
+
+            function applyFiltersAndRender() {
+                const keyword = (document.getElementById('keywords').value || '').trim().toLowerCase();
+                const category = document.getElementById('channel-category').value || 'ALL';
+                const sortSub = document.getElementById('sort-subscribe').value;
+                const sortDate = document.getElementById('sort-date').value;
+
+                let filtered = CHANNELS_DATA.filter(function (ch) {
+                    const matchCat = (category === 'ALL') || (ch.category.toLowerCase() === category.toLowerCase());
+                    const matchKw = !keyword ||
+                        ch.name.toLowerCase().indexOf(keyword) !== -1 ||
+                        (ch.handle && ch.handle.toLowerCase().indexOf(keyword) !== -1) ||
+                        ch.category.toLowerCase().indexOf(keyword) !== -1 ||
+                        ch.id.toLowerCase().indexOf(keyword) !== -1;
+                    return matchCat && matchKw;
+                });
+
+                // Sắp xếp dữ liệu
+                if (sortDate === '1') {
+                    filtered.sort(function (a, b) {
+                        return new Date(b.published_at || 0) - new Date(a.published_at || 0);
+                    });
+                } else if (sortDate === '2') {
+                    filtered.sort(function (a, b) {
+                        return new Date(a.published_at || 0) - new Date(b.published_at || 0);
+                    });
+                } else if (sortSub === '2') {
+                    filtered.sort(function (a, b) {
+                        return a.subscribers - b.subscribers;
+                    });
+                } else if (sortSub === '1') {
+                    filtered.sort(function (a, b) {
+                        return b.subscribers - a.subscribers;
+                    });
+                }
+
+                document.getElementById('total-count').textContent = filtered.length;
+                const tbody = document.getElementById('channels-table-body');
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = (
+                        '<tr class="inner-box">' +
+                            '<td colspan="5" class="text-center py-5">' +
+                                '<img src="img/channel/500x500/no-data.jpg" alt="No data" style="width:120px;border-radius:8px;margin-bottom:12px;" />' +
+                                '<h5 class="text-muted">Không tìm thấy kênh YouTube nào phù hợp</h5>' +
+                            '</td>' +
+                        '</tr>'
+                    );
+                    return;
+                }
+
+                tbody.innerHTML = filtered.map(function (ch, idx) {
+                    const rank = idx + 1;
+                    const rankClass = rank <= 3 ? 'rank-top-' + rank : '';
+                    const avatarPath = 'img/channel/500x500/' + (ch.avatar || 'default-channel-thumbnail.jpg');
+                    const profileUrl = 'profile.html?id=' + encodeURIComponent(ch.id);
+
+                    return (
+                        '<tr class="inner-box">' +
+                            '<th scope="row">' +
+                                '<div class="event-date">' +
+                                    '<span class="' + rankClass + '">#' + rank + '</span>' +
+                                    '<p>' + formatPublishedDate(ch.published_at) + '</p>' +
+                                '</div>' +
+                            '</th>' +
+                            '<td>' +
+                                '<div class="event-img">' +
+                                    '<a href="' + profileUrl + '" title="Xem chi tiết kênh ' + ch.name + '">' +
+                                        '<img src="' + avatarPath + '" alt="' + ch.name + '" onerror="this.onerror=null;this.src=\'' + DEFAULT_AVATAR + '\';" />' +
+                                    '</a>' +
+                                '</div>' +
+                            '</td>' +
+                            '<td>' +
+                                '<div class="event-wrap">' +
+                                    '<h3>' +
+                                        '<a href="' + profileUrl + '">' + ch.name + '</a>' +
+                                        '<span class="handle-badge">' + (ch.handle || '') + '</span>' +
+                                    '</h3>' +
+                                    '<div class="meta">' +
+                                        '<div class="categories">' +
+                                            '<a href="#" class="js-category-link" data-category="' + ch.category + '">' + ch.category + '</a>' +
+                                        '</div>' +
+                                        '<div class="organizers">' +
+                                            renderSocialLinks(ch) +
+                                        '</div>' +
+                                        '<div class="time">' +
+                                            '<span><i class="fa fa-video-camera"></i> ' + (ch.videos_count || 0).toLocaleString() + ' videos &bull; <i class="fa fa-eye"></i> ' + (ch.view_count || 0).toLocaleString() + ' views &bull; <small class="text-muted">ID: ' + ch.id + '</small></span>' +
+                                        '</div>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</td>' +
+                            '<td>' +
+                                '<div class="r-no">' +
+                                    '<span>' + ch.subscribers_formatted + '</span>' +
+                                    '<small class="text-muted d-block">' + (ch.subscribers || 0).toLocaleString() + ' người đăng ký</small>' +
+                                '</div>' +
+                            '</td>' +
+                            '<td>' +
+                                '<div class="primary-btn">' +
+                                    '<a class="btn btn-primary btn-sm mb-2 d-block" href="' + profileUrl + '"><i class="fa fa-id-card-o"></i> Xem Profile</a>' +
+                                    '<a class="btn btn-outline-danger btn-sm d-block" href="' + ch.url + '" target="_blank" rel="noopener noreferrer"><i class="fa fa-youtube-play"></i> Watch Video</a>' +
+                                '</div>' +
+                            '</td>' +
+                        '</tr>'
+                    );
+                }).join('');
+
+                // Gắn sự kiện khi bấm vào tên danh mục trong từng dòng
+                tbody.querySelectorAll('.js-category-link').forEach(function (link) {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const cat = this.getAttribute('data-category');
+                        document.getElementById('channel-category').value = cat;
+                        renderGroupCategories(cat);
+                        applyFiltersAndRender();
+                    });
+                });
+            }
+
+            // Gắn sự kiện cho form tìm kiếm & sắp xếp
+            document.getElementById('contact-submit').addEventListener('click', applyFiltersAndRender);
+            document.getElementById('keywords').addEventListener('input', applyFiltersAndRender);
+            document.getElementById('sort-subscribe').addEventListener('change', function () {
+                if (this.value !== '0') {
+                    document.getElementById('sort-date').value = '0';
+                }
+                applyFiltersAndRender();
+            });
+            document.getElementById('sort-date').addEventListener('change', function () {
+                if (this.value !== '0') {
+                    document.getElementById('sort-subscribe').value = '0';
+                }
+                applyFiltersAndRender();
+            });
+            document.getElementById('reset-filter').addEventListener('click', function () {
+                document.getElementById('keywords').value = '';
+                document.getElementById('channel-category').value = 'ALL';
+                document.getElementById('sort-subscribe').value = '1';
+                document.getElementById('sort-date').value = '0';
+                renderGroupCategories('ALL');
+                applyFiltersAndRender();
+            });
+
+            // Gắn sự kiện cho nút Đồng bộ YouTube API -> Database
+            const syncBtn = document.getElementById('sync-youtube-btn');
+            if (syncBtn && typeof syncChannelsWithYouTubeAPI === 'function') {
+                syncBtn.addEventListener('click', function () {
+                    const statusEl = document.getElementById('supabase-status');
+                    syncBtn.disabled = true;
+                    syncBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Đang lấy dữ liệu từ YouTube API...';
+
+                    syncChannelsWithYouTubeAPI()
+                        .then(function (res) {
+                            const currentCat = document.getElementById('channel-category').value || 'ALL';
+                            renderGroupCategories(currentCat);
+                            applyFiltersAndRender();
+
+                            if (statusEl) {
+                                if (res.supabaseSynced) {
+                                    statusEl.className = 'badge badge-success';
+                                    statusEl.textContent = 'Đã cập nhật ' + res.updatedCount + ' kênh từ YouTube API vào Supabase';
+                                } else {
+                                    statusEl.className = 'badge badge-info';
+                                    statusEl.textContent = 'Đã cập nhật ' + res.updatedCount + ' kênh từ YouTube API (chưa ghi được vào Supabase)';
+                                }
+                            }
+                        })
+                        .catch(function (err) {
+                            alert('Lỗi khi gọi YouTube API: ' + err.message);
+                        })
+                        .finally(function () {
+                            syncBtn.disabled = false;
+                            syncBtn.innerHTML = '<i class="fa fa-youtube-play"></i> Đồng bộ YouTube API &rarr; Database';
+                        });
+                });
+            }
+
+            // Khởi tạo giao diện ban đầu và đồng bộ dữ liệu từ Supabase
+            renderGroupCategories('ALL');
+            applyFiltersAndRender();
+
+            if (typeof fetchChannelsFromSupabase === 'function') {
+                fetchChannelsFromSupabase().then(function (result) {
+                    const statusEl = document.getElementById('supabase-status');
+                    if (statusEl) {
+                        if (result.source === 'supabase') {
+                            statusEl.className = 'badge badge-success';
+                            statusEl.textContent = 'Đã kết nối Supabase (' + result.data.length + ' kênh)';
+                        } else if (result.source === 'local-empty') {
+                            statusEl.className = 'badge badge-warning';
+                            statusEl.textContent = 'Supabase (Bảng trống - dùng dữ liệu SQL cục bộ)';
+                        } else {
+                            statusEl.className = 'badge badge-warning';
+                            statusEl.textContent = 'Chế độ Offline (Dữ liệu SQL cục bộ)';
+                        }
+                    }
+                    const currentCat = document.getElementById('channel-category').value || 'ALL';
+                    renderGroupCategories(currentCat);
+                    applyFiltersAndRender();
+                });
+            }
+        })();
+    </script>
+</body>
+
+</html>
