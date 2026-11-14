@@ -154,5 +154,19 @@ export default {
 
         // Các đường dẫn khác: trả về static site
         return env.ASSETS.fetch(request);
+    },
+
+    // Xử lý tự động khi Cloudflare Cron Triggers kích hoạt
+    async scheduled(event, env, ctx) {
+        console.log(`[Cron Trigger] Bắt đầu đồng bộ tự động lúc: ${new Date().toISOString()}`);
+        ctx.waitUntil(
+            syncYouTubeToDatabase(env)
+                .then(res => {
+                    console.log('[Cron Trigger] Đồng bộ thành công:', JSON.stringify(res));
+                })
+                .catch(err => {
+                    console.error('[Cron Trigger] Lỗi đồng bộ:', err.message);
+                })
+        );
     }
 };
